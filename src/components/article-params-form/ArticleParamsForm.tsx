@@ -16,30 +16,26 @@ import {
 } from 'src/constants/articleProps';
 
 import styles from './ArticleParamsForm.module.scss';
-import { useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
 import clsx from 'clsx';
+import { UseCloseSidebar } from './hooks/useCloseSidebar';
 
 type ArticleParamsFormProps = {
-	isSidebarOpen: boolean;
-	onSidebarToggle: () => void;
-	currentParams: ArticleStateType;
 	onApply: (params: ArticleStateType) => void;
-	onReset: () => void;
 };
 
-export const ArticleParamsForm = ({
-	isSidebarOpen,
-	onSidebarToggle,
-	currentParams,
-	onApply,
-	onReset,
-}: ArticleParamsFormProps) => {
+export const ArticleParamsForm = ({ onApply }: ArticleParamsFormProps) => {
+	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const [localParams, setLocalParams] =
-		useState<ArticleStateType>(currentParams);
+		useState<ArticleStateType>(defaultArticleState);
 
-	useEffect(() => {
-		setLocalParams(currentParams);
-	}, [currentParams]);
+	const sidebarRef = useRef<HTMLElement>(null);
+
+	UseCloseSidebar({
+		isOpen: isSidebarOpen,
+		onClose: () => setIsSidebarOpen(false),
+		rootRef: sidebarRef,
+	});
 
 	const handleFontFamilyChange = (option: OptionType) => {
 		setLocalParams((prev) => ({
@@ -79,18 +75,23 @@ export const ArticleParamsForm = ({
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 		onApply(localParams);
-		onSidebarToggle();
+		setIsSidebarOpen(false);
 	};
 
 	const handleReset = () => {
 		setLocalParams(defaultArticleState);
-		onReset();
+		onApply(defaultArticleState);
+	};
+
+	const handleSidebarToggle = () => {
+		setIsSidebarOpen(!isSidebarOpen);
 	};
 
 	return (
 		<>
-			<ArrowButton isOpen={isSidebarOpen} onClick={onSidebarToggle} />
+			<ArrowButton isOpen={isSidebarOpen} onClick={handleSidebarToggle} />
 			<aside
+				ref={sidebarRef}
 				className={clsx(styles.container, {
 					[styles.container_open]: isSidebarOpen,
 				})}
